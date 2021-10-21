@@ -5,12 +5,10 @@ import java.sql.*;
 import java.awt.event.*;
 
 public class Aplicacion_Consulta {
-
     public static void main(String[] args) {
         JFrame mimarco=new Marco_Aplicacion();
         mimarco.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         mimarco.setVisible(true);
-
     }
 }
 class Marco_Aplicacion extends JFrame{
@@ -45,6 +43,7 @@ class Marco_Aplicacion extends JFrame{
 
         //-----------------------CONEXIÓN CON BBDD---------------------------------
         try {
+
             //1. CREAR CONEXIÓN.
             miConexion = DriverManager.getConnection("jdbc:mysql://localhost:3306/curso_sql", "root", "");
             //2. PREPARANDO CONSULTA
@@ -67,26 +66,36 @@ class Marco_Aplicacion extends JFrame{
             rs=sentencia.executeQuery(consulta);
             while(rs.next()){
                 paises.addItem(rs.getString(1));
-
             }
             rs.close();
-
-
         }catch(Exception e){
 
         }
-
         }
-
     private void ejecutaConsulta(){
         ResultSet rs=null;
         try{
+            //Cada vez que nosotros pulsamos el botón de consulta el flujo de ejecución tiene que pasar por esta línea forzosamente.
+            resultado.setText("");
             //Guardar dentro de la variable "seccion" el elemento seleccionado del desplegable de JComboBox
             String seccion = (String)secciones.getSelectedItem(); //Utilizamos este método para extraer los elementos del JComboBox.
-            //Creamos una consulta preparada y la almacenamos
-            enviaConsultaSeccion=miConexion.prepareStatement(consultaSeccion);
-            enviaConsultaSeccion.setString(1, seccion);
-            rs=enviaConsultaSeccion.executeQuery();
+            String pais=(String)paises.getSelectedItem();
+            //Creamos el if
+            if(!seccion.equals("Todos") && pais.equals("Todos")) {
+                //Creamos una consulta preparada y la almacenamos
+                enviaConsultaSeccion = miConexion.prepareStatement(consultaSeccion);
+                enviaConsultaSeccion.setString(1, seccion);
+                rs = enviaConsultaSeccion.executeQuery();
+            }else if(seccion.equals("Todos") && !pais.equals("Todos")){
+                enviaConsultaPais = miConexion.prepareStatement(consultaPais);
+                enviaConsultaPais.setString(1, pais);
+                rs = enviaConsultaPais.executeQuery();
+            }else if(!seccion.equals("Todos") && !pais.equals("Todos")){
+                enviaConsultaTodos = miConexion.prepareStatement(consultaTodos);
+                enviaConsultaTodos.setString(1, seccion);
+                enviaConsultaTodos.setString(2, pais);
+                rs = enviaConsultaTodos.executeQuery();
+            }
             while(rs.next()){
                 resultado.append(rs.getString(1));
                 resultado.append(", ");
@@ -97,31 +106,20 @@ class Marco_Aplicacion extends JFrame{
                 resultado.append(rs.getString(4));
                 resultado.append("\n");
             }
-
-
         }catch(Exception e){
 
         }
     }
-
     //Variables
     private JComboBox secciones;
     private JComboBox paises;
     private JTextArea resultado;
-
     private PreparedStatement enviaConsultaSeccion;
+    private PreparedStatement enviaConsultaPais;
+    private PreparedStatement enviaConsultaTodos;
     private final String consultaSeccion="SELECT NOMBREARTÍCULO, SECCIÓN, PRECIO, PAÍSDEORIGEN FROM PRODUCTOS WHERE SECCIÓN=?";
-
+    private final String consultaPais="SELECT NOMBREARTÍCULO, SECCIÓN, PRECIO, PAÍSDEORIGEN FROM PRODUCTOS WHERE PAÍSDEORIGEN=?";
+    private final String consultaTodos="SELECT NOMBREARTÍCULO, SECCIÓN, PRECIO, PAÍSDEORIGEN FROM PRODUCTOS WHERE SECCIÓN=? AND PAÍSDEORIGEN=?";
     private Connection miConexion;
     //Variables
 }
-
-
-
-
-
-
-
-
-
-
